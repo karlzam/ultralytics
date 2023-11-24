@@ -6,6 +6,7 @@ from copy import deepcopy
 
 import cv2
 import numpy as np
+from numpy import newaxis
 import torch
 import torchvision.transforms as T
 
@@ -177,8 +178,13 @@ class Mosaic(BaseMixTransform):
             h, w = labels_patch.pop('resized_shape')
 
             # Place img in img4
-            if i == 0:  # top left
-                img4 = np.full((s * 2, s * 2, img.shape[1]), 114, dtype=np.uint16)  # base image with 4 tiles
+            if i == 0:
+                print(img.shape)# top left
+
+                # This is sketchy - what was the original image shape?
+                img = img[:, :, newaxis]
+
+                img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint16)  # base image with 4 tiles
                 x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
                 x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
             elif i == 1:  # top right
@@ -191,7 +197,7 @@ class Mosaic(BaseMixTransform):
                 x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
                 x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
 
-            img4[y1a:y2a, x1a:x2a] = img[y1b:y2b, x1b:x2b]  # img4[ymin:ymax, xmin:xmax]
+            img4[y1a:y2a, x1a:x2a] = img4[y1b:y2b, x1b:x2b]  # img4[ymin:ymax, xmin:xmax]
             padw = x1a - x1b
             padh = y1a - y1b
 
@@ -571,8 +577,8 @@ class RandomHSV:
         """
         img = labels['img']
         if self.hgain or self.sgain or self.vgain:
-            r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
-            hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
+            r = np.random.uniform(-1, 1, 1) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
+            hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.IMREAD_COLOR))
             dtype = img.dtype  # uint8
 
             x = np.arange(0, 256, dtype=r.dtype)
