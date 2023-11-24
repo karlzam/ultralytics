@@ -178,7 +178,7 @@ class Mosaic(BaseMixTransform):
 
             # Place img in img4
             if i == 0:  # top left
-                img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
+                img4 = np.full((s * 2, s * 2, img.shape[1]), 114, dtype=np.uint16)  # base image with 4 tiles
                 x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
                 x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
             elif i == 1:  # top right
@@ -895,9 +895,13 @@ class Format:
 
     def _format_img(self, img):
         """Format the image for YOLO from Numpy array to PyTorch tensor."""
+        #if len(img.shape) < 3:
+        #    img = np.expand_dims(img, -1)
+        #img = np.ascontiguousarray(img.transpose(2, 0, 1)[::-1])
+        #img = torch.from_numpy(img)
         if len(img.shape) < 3:
-            img = np.expand_dims(img, -1)
-        img = np.ascontiguousarray(img.transpose(2, 0, 1)[::-1])
+            img = img.reshape([1, *img.shape])
+        img = np.ascontiguousarray(img)
         img = torch.from_numpy(img)
         return img
 
@@ -1103,5 +1107,5 @@ class ToTensor:
         im = np.ascontiguousarray(im.transpose((2, 0, 1))[::-1])  # HWC to CHW -> BGR to RGB -> contiguous
         im = torch.from_numpy(im)  # to torch
         im = im.half() if self.half else im.float()  # uint8 to fp16/32
-        im /= 255.0  # 0-255 to 0.0-1.0
+        im /= 65535.0  # 0-255 to 0.0-1.0
         return im

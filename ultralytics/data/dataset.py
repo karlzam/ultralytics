@@ -227,7 +227,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
         self.torch_transforms = classify_transforms(args.imgsz, rect=args.rect)
         self.album_transforms = classify_albumentations(
-            augment=augment,
+            augment=False,
             size=args.imgsz,
             scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
             hflip=args.fliplr,
@@ -243,10 +243,10 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         """Returns subset of data and targets corresponding to given indices."""
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
         if self.cache_ram and im is None:
-            im = self.samples[i][3] = cv2.imread(f)
+            im = self.samples[i][3] = cv2.imread(f, cv2.IMREAD_UNCHANGED)
         elif self.cache_disk:
             if not fn.exists():  # load npy
-                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
+                np.save(fn.as_posix(), cv2.imread(f, cv2.IMREAD_UNCHANGED), allow_pickle=False)
             im = np.load(fn)
         else:  # read image
             im = cv2.imread(f)  # BGR

@@ -159,7 +159,7 @@ class FastSAMPrompt:
                         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                         contour_all.extend(iter(contours))
                     cv2.drawContours(temp, contour_all, -1, (255, 255, 255), 2)
-                    color = np.array([0 / 255, 0 / 255, 1.0, 0.8])
+                    color = np.array([0 / 65535, 0 / 65535, 1.0, 0.8])
                     contour_mask = temp / 255 * color.reshape(1, 1, -1)
                     plt.imshow(contour_mask)
 

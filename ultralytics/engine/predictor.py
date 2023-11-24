@@ -120,14 +120,18 @@ class BasePredictor:
         not_tensor = not isinstance(im, torch.Tensor)
         if not_tensor:
             im = np.stack(self.pre_transform(im))
-            im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
+
+            # Changed for greyscale
+            im = np.expand_dims(im, -1)
+            im = im[..., ::].transpose((0, 3, 1, 2)) # # BGR to RGB, BHWC to BCHW, (n, 3, h, w), this comment no longer accurate
+
             im = np.ascontiguousarray(im)  # contiguous
             im = torch.from_numpy(im)
 
         im = im.to(self.device)
         im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
         if not_tensor:
-            im /= 255  # 0 - 255 to 0.0 - 1.0
+            im /= 65535  # 0 - 255 to 0.0 - 1.0
         return im
 
     def inference(self, im, *args, **kwargs):
